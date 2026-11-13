@@ -1,0 +1,19 @@
+{
+  "name": "test_llm-ide",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Black-box checks for llm-ide: graph, Loop, refactor, Factory, issues and Gantt",
+  "type": "module",
+  "engines": {
+    "node": ">=22.6"
+  },
+  "scripts": {
+    "test": "node --test --experimental-strip-types \"tests/**/*.test.mjs\"",
+    "test:graph": "node --test --experimental-strip-types \"tests/graph/*.test.mjs\"",
+    "test:loop": "node --test --experimental-strip-types \"tests/loop/*.test.mjs\"",
+    "test:refactor": "node --test --experimental-strip-types \"tests/refactor/*.test.mjs\"",
+    "test:factory": "node --test --experimental-strip-types \"tests/factory/*.test.mjs\"",
+    "test:issues": "node --test --experimental-strip-types \"tests/issues/*.test.mjs\"",
+    "test:gantt": "node --test --experimental-strip-types \"tests/gantt/*.test.mjs\""
+  }
+}
