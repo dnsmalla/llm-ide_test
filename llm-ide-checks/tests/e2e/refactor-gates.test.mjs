@@ -241,12 +241,14 @@ test('characterization: the graph gate alone cannot tell a no-op from a refactor
   const api = realFs(n);
   await runCodeGraph(api, 'snapshot', GRAPH, BEFORE, rescanner(n));
   const r = await runCodeGraph(api, 'verify', GRAPH, BEFORE, rescanner(n)); // nothing was changed
-  assert.equal(r.passed, true, 'an unchanged project passes as "graph stable"');
+  assert.equal(r.passed, true, 'an unchanged project passes as "graph ok"');
 });
 
 // ---- known gaps ----------------------------------------------------------------------------
-test('the graph gate reports the file count for the real graph-kit output', { todo: 'runCodeGraph reads a files[] array that graph-kit does not write, so it reports 0 file(s)' }, () => {
-  assert.match(verify.output, /3 file\(s\)/);
+test('the graph gate reports the real file count', () => {
+  const m = verify.output.match(/(\d+) file\(s\)/);
+  assert.ok(m, verify.output);
+  assert.equal(Number(m[1]), graphAfter.nodes.filter((n) => n.kind === 'file').length);
 });
 
 test('a batch that expects a counter to fall fails when it did not', { todo: 'the native gate ignores the batch "- Expect:" line; only the old Mac gate enforced it' }, async () => {
@@ -258,7 +260,7 @@ test('a batch that expects a counter to fall fails when it did not', { todo: 'th
   assert.equal(r.passed, false, r.output);
 });
 
-test('a refactor that introduces an import cycle fails the graph gate', { todo: 'runCodeGraph counts cycles from calls[], which graph-kit does not write, so cycles are always 0' }, async () => {
+test('a refactor that introduces an import cycle fails the graph gate', async () => {
   const c = newProject();
   const api = realFs(c);
   await runCodeGraph(api, 'snapshot', GRAPH, BEFORE, rescanner(c));
