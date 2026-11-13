@@ -229,9 +229,33 @@ test('a refactor that changes behaviour is caught by the old tests', () => {
   assert.ok(r.fail >= 2, 'the HALF and TEN coupon tests fail');
 });
 
+// ---- "did anything actually change?" ------------------------------------------------------
+test('the code really changed: pricing.mjs differs and two new source files exist', () => {
+  assert.notEqual(fs.readFileSync(path.join(root, 'src/pricing.mjs'), 'utf8'), OLD_CODE['src/pricing.mjs']);
+  assert.ok(fs.existsSync(path.join(root, 'src/tax.mjs')));
+  assert.ok(fs.existsSync(path.join(root, 'src/discount.mjs')));
+});
+
+test('characterization: the graph gate alone cannot tell a no-op from a refactor', async () => {
+  const n = newProject();
+  const api = realFs(n);
+  await runCodeGraph(api, 'snapshot', GRAPH, BEFORE, rescanner(n));
+  const r = await runCodeGraph(api, 'verify', GRAPH, BEFORE, rescanner(n)); // nothing was changed
+  assert.equal(r.passed, true, 'an unchanged project passes as "graph stable"');
+});
+
 // ---- known gaps ----------------------------------------------------------------------------
 test('the graph gate reports the file count for the real graph-kit output', { todo: 'runCodeGraph reads a files[] array that graph-kit does not write, so it reports 0 file(s)' }, () => {
   assert.match(verify.output, /3 file\(s\)/);
+});
+
+test('a batch that expects a counter to fall fails when it did not', { todo: 'the native gate ignores the batch "- Expect:" line; only the old Mac gate enforced it' }, async () => {
+  const n = newProject();
+  const api = realFs(n);
+  await runCodeGraph(api, 'snapshot', GRAPH, BEFORE, rescanner(n));
+  // runCodeGraph takes no expectation, so there is nothing to pass; a no-op batch that expected a change must fail
+  const r = await runCodeGraph(api, 'verify', GRAPH, BEFORE, rescanner(n), { expect: 'cycleCount 1 -> 0' });
+  assert.equal(r.passed, false, r.output);
 });
 
 test('a refactor that introduces an import cycle fails the graph gate', { todo: 'runCodeGraph counts cycles from calls[], which graph-kit does not write, so cycles are always 0' }, async () => {
