@@ -14,11 +14,14 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 export const TEST_REPO = path.resolve(here, '..', '..');
 
 function resolveLlmIdeRoot() {
-  const raw = process.env.LLM_IDE_ROOT || path.resolve(TEST_REPO, '..', 'llm-ide');
-  const root = path.resolve(raw);
-  if (!fs.existsSync(path.join(root, 'ui', 'screens', 'gantt', 'gantt-model.ts'))) {
-    throw new Error(`LLM_IDE_ROOT does not point at an llm-ide checkout: ${root}`);
-  }
+  // LLM_IDE_ROOT wins; otherwise the checkout that contains this repo (when it is
+  // the llm-ide submodule), then a sibling named llm-ide.
+  const marker = path.join('ui', 'screens', 'gantt', 'gantt-model.ts');
+  const candidates = process.env.LLM_IDE_ROOT
+    ? [process.env.LLM_IDE_ROOT]
+    : [path.resolve(TEST_REPO, '..'), path.resolve(TEST_REPO, '..', 'llm-ide')];
+  const root = candidates.map((c) => path.resolve(c)).find((c) => fs.existsSync(path.join(c, marker)));
+  if (!root) throw new Error(`no llm-ide checkout found (tried: ${candidates.join(", ")}); set LLM_IDE_ROOT`);
   return root;
 }
 
@@ -35,3 +38,6 @@ export const ext = (relPath) => import(pathToFileURL(path.join(LLM_IDE, 'extensi
 export function scratchDir(label) {
   return fs.mkdtempSync(path.join(os.tmpdir(), `test-llm-ide-${label}-`));
 }
+
+/** The graph-kit CLI that produces system/graph/graph.json (the graph-kit/ submodule). */
+export const GRAPH_KIT_CLI = path.join(LLM_IDE, 'graph-kit', 'bin', 'graph-kit.js');
