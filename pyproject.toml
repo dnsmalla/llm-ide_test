@@ -1,0 +1,9 @@
+[project]
+name = "llm-ide-sample"
+version = "0.1.0"
+description = "A deliberately unstructured shop app for testing LLM-IDE's graph, test and refactor loops"
+requires-python = ">=3.9"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

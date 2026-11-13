@@ -1,78 +1,75 @@
-# test_llm-ide
+# llm-ide_test
 
-このリポジトリは、llm-ide の以下の機能を検証するテストコードをまとめたものです。
+Everything for checking LLM-IDE in one repo:
 
-- グラフ（graph）
-- Loop（特にテスト生成・ship・Factory 周辺）
-- リファクタリング（Refactoring loop）
-- Factory（作業項目のボード）
-- Issue（一覧・フィルタ・スケジュール保存）
-- Gantt（日付計算・バー・ドラッグ移動・保存キュー）
+- **The repo root** is a small shop-order app in Python that is **unstructured on purpose**. Point
+  LLM-IDE's desktop app at this repo and see clearly whether the graph, the Test loop, the
+  Refactoring loop and the Factory do their job.
+- **[`llm-ide-checks/`](llm-ide-checks/README.md)** is a JavaScript suite that tests LLM-IDE's own
+  code (graph, Loop, refactor gates, Factory, issues, Gantt) against an llm-ide checkout:
+  `cd llm-ide-checks && npm test`.
 
-テストは llm-ide 本体のコードをそのまま import して実行します。テスト専用のコピーは持ちません。
-
-## 概要
-
-- 対象: llm-ide のリポジトリ（別リポジトリ、ローカルに checkout 済みであること）
-- テストランナー: Node.js 組み込みの `node:test`（外部依存なし）
-- 形式: 純粋関数の単体テスト、および一時 DB を使う Issue スケジュール保存のテスト
-
-## セットアップ
-
-前提:
-
-- Node.js 22.6 以上（TypeScript の型除去を使うため）
-- llm-ide の checkout（`extension/` の依存関係を `npm ci` 済み。Issue スケジュール保存テストに必要）
+The root has no `package.json` on purpose: the desktop Loop then detects `pytest` (from
+`pyproject.toml`) as this repo's test command.
 
 ```bash
-git clone <このリポジトリのURL> test_llm-ide
-cd test_llm-ide
-cp .env.example .env   # LLM_IDE_ROOT に llm-ide の場所を書く
+python3 shop.py data/orders.csv          # the report (add --save to write out/summary.json)
+python3 -m pytest -q                     # the one end-to-end golden test
+python3 tools/measure.py before          # record the "before" numbers
+python3 tools/measure.py --compare before after
 ```
 
-`LLM_IDE_ROOT` が未設定の場合は、このリポジトリの隣にある `llm-ide/` を使います。
+Python 3.9+ and `pytest` on the PATH (the Loop runs `pytest`, detected from `pyproject.toml`).
 
-## 使い方
+## What is wrong on purpose
 
-```bash
-# すべて
-npm test
+Every problem has a number in `tools/measure.py`, so a fix shows up as a change.
 
-# 領域ごと
-npm run test:graph
-npm run test:loop
-npm run test:refactor
-npm run test:factory
-npm run test:issues
-npm run test:gantt
-```
+| Problem | Where | `measure.py` metric (before) |
+|---|---|---|
+| One god file: reading, validation, pricing, reports, saving, CLI | `shop.py` (403 lines) | `largest_file_lines` 403, `files_over_300_lines` 1 |
+| One 109-line function that does everything | `shop.process_everything` | `longest_function`, `functions_over_40_lines` 1 |
+| The tax table is copied five times | `process_everything`, `calc_tax_for_order`, `tax_for_region_report`, `save_summary`, `TAX_RATES` | `duplicate_4_line_blocks` 12 |
+| Error handling repeated in every branch | `check_row` | part of `duplicate_4_line_blocks` |
+| Global mutable state | `ORDERS`, `ERRORS`, `STATS`, `SAVE` | `global_statements` 2 |
+| Import cycle | `shop` imports `utils`, `utils` imports `shop` | `import_cycles` [shop, utils] |
+| Dead module | `legacy.py`, imported by nothing | `unused_modules` [legacy] |
+| Almost no tests | only the golden end-to-end test | `test_functions` 2 |
 
-LLM_IDE_ROOT を指定して実行する例:
+## Known quirks (pinned, do not "fix" in a refactor)
 
-```bash
-LLM_IDE_ROOT=/Users/me/llm-ide npm test
-```
+The golden test (`tests/golden/report.txt`) pins today's output exactly. A
+refactor must keep it; fixing one of these is a behaviour change and belongs in
+its own commit that also updates the golden file.
 
-## ディレクトリ構成
+- Order A106: the `coupon VIP` line shows `-$0.82`, which is really the silver
+  member discount. The VIP coupon itself was refused.
+- Error messages say `line N`, but N counts data rows, not file lines (comments are skipped).
+- Order A100 is reported with customer `aiko`; the later `zed` row is rejected.
 
-```text
-tests/
-  helpers/root.mjs              llm-ide の場所を解決し、UI/拡張のモジュールを import する
-  graph/                        グラフのデコード、検索、LOD、重み、ファイルツリー、循環検出、コードグラフの整形
-  loop/                         Factory テンプレート、Factory ヘルパー、テスト結果の台帳、ship の差分、エージェントの権限境界
-  refactor/                     組み込みの Refactoring loop の定義と設定
-  factory/                      Factory ボードのアクション・レーン・要約・リンクの安全確認
-  issues/                       Issue の読み込み・フィルタ・リポジトリ名・URL・冪等キー、スケジュールの保存（一時 DB）
-  gantt/                        日付計算、バーの範囲、ドラッグ移動、保存キュー
-```
+## Testing the desktop app with it
 
-## テストの方針
+1. **Add the repo** in Settings → Repositories (`dnsmalla/llm-ide_test`) and clone it into the project.
+2. **Before:** generate the graph, then from the clone run
+   `python3 tools/measure.py before --graph <project>/system/graph/<repo>/graph-code.json`
+   (with only one repo under `code/`, the graph is `<project>/system/graph/graph-code.json`).
+3. **Graph:** it should show 3 Python files, the `shop` ↔ `utils` import cycle, and `legacy.py` with no incoming import.
+4. **Test loop:** it should add unit tests (for example tax, discounts, shipping, CSV checks) through public calls.
+   Then run `python3 tools/measure.py after-test` and compare. Expect `test_functions` to rise, with
+   `tests_green` and `behaviour_unchanged` both `True`, and no source line changed.
+5. **Refactoring loop** (turn on "Open an issue per run and comment each step on it" to follow it on GitHub):
+   run `python3 tools/measure.py after-refactor --graph …` and compare with `before`.
 
-- llm-ide 本体の関数を変更せずに呼び出す（ブラックボックス）。
-- 期待値は仕様として書く。実装と食い違う場合は、まず実装の意図を確認してからテストを直す。
-- ファイルシステムや DB を使うテストは、OS の一時ディレクトリにだけ書く。llm-ide の実データには触れない。
+### What "working correctly" looks like after a refactor
 
-## 注意
+| Must hold | Should improve |
+|---|---|
+| `behaviour_unchanged` is `True` (the golden report is byte-identical) | `largest_file_lines` and `functions_over_40_lines` fall |
+| `tests_green` is `True` | `duplicate_4_line_blocks` falls (one tax table) |
+| `tests/golden/report.txt` and `data/` are untouched | `import_cycles` becomes `[]` |
+| | `unused_modules` becomes `[]` (`legacy.py` removed) |
+| | `global_statements` falls |
+| | the graph shows more, smaller files and no cycle |
 
-- テストが失敗した場合、llm-ide 側の回帰か、テスト側の期待値のずれかを区別してください。
-- `extension/` の依存関係が無い場合、`tests/issues/issue-schedule-store.test.mjs` と `tests/graph/graph-rollup.test.mjs` は失敗します。
+If `behaviour_unchanged` turns `False`, the refactor changed behaviour. That is
+the clearest signal that something is wrong.

@@ -10,16 +10,20 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
-/** This repository's root (test_llm-ide). */
+/** The checks' own root (llm-ide-checks/ inside the llm-ide_test repo). */
 export const TEST_REPO = path.resolve(here, '..', '..');
 
 function resolveLlmIdeRoot() {
-  // LLM_IDE_ROOT wins; otherwise the checkout that contains this repo (when it is
-  // the llm-ide submodule), then a sibling named llm-ide.
+  // LLM_IDE_ROOT wins; otherwise each folder above this one, then a sibling named llm-ide
+  // beside it: that finds the checkout that contains this repo as its submodule, and a
+  // checkout cloned next to it.
   const marker = path.join('ui', 'screens', 'gantt', 'gantt-model.ts');
-  const candidates = process.env.LLM_IDE_ROOT
-    ? [process.env.LLM_IDE_ROOT]
-    : [path.resolve(TEST_REPO, '..'), path.resolve(TEST_REPO, '..', 'llm-ide')];
+  const above = [];
+  for (let dir = path.resolve(TEST_REPO, '..'); ; dir = path.dirname(dir)) {
+    above.push(dir, path.join(dir, 'llm-ide'));
+    if (path.dirname(dir) === dir) break;
+  }
+  const candidates = process.env.LLM_IDE_ROOT ? [process.env.LLM_IDE_ROOT] : above;
   const root = candidates.map((c) => path.resolve(c)).find((c) => fs.existsSync(path.join(c, marker)));
   if (!root) throw new Error(`no llm-ide checkout found (tried: ${candidates.join(", ")}); set LLM_IDE_ROOT`);
   return root;

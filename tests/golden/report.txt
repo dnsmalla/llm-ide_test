@@ -1,0 +1,110 @@
+--------------------------------------------
+                SHOP REPORT                 
+--------------------------------------------
+Order A100  customer=aiko  region=JP  member=-
+  Python Basics          x  1  $24.00
+  Puzzle Cube            x  2  $19.00
+  subtotal                    $43.00
+  shipping                    $5.00
+  tax                         $4.80
+  TOTAL                       $52.80
+  points: 5
+
+Order A101  customer=ben  region=EU  member=silver
+  Clean Code Notes       x  3  $92.62
+  USB Cable              x  2  $12.00
+  subtotal                    $104.62
+  coupon SAVE10               -$12.35
+  shipping                    $13.00
+  tax                         $21.06
+  TOTAL                       $126.34
+  points: 12
+
+Order A102  customer=chen  region=US  member=gold
+  Wooden Train           x  5  $81.00
+  Headphones             x  1  $59.00
+  subtotal                    $140.00
+  coupon VIP                  -$26.95
+  shipping                    $0.00
+  tax                         $7.91
+  TOTAL                       $120.96
+  points: 24
+
+Order A103  customer=dana  region=OTHER  member=-
+  Puzzle Cube            x  1  $9.50
+  subtotal                    $9.50
+  coupon FLAT5                $0.00
+  shipping                    $5.00
+  tax                         $0.00
+  TOTAL                       $14.50
+  points: 1
+
+Order A104  customer=aiko  region=JP  member=-
+  Desk Lamp              x  2  $70.00
+  subtotal                    $70.00
+  coupon FLAT5                -$5.00
+  shipping                    $10.00
+  tax                         $7.50
+  TOTAL                       $82.50
+  points: 8
+
+Order A105  customer=eve  region=US  member=-
+  Robot Kit              x  3  $237.00
+  subtotal                    $237.00
+  shipping                    $0.00
+  tax                         $16.59
+  TOTAL                       $253.59
+  points: 25
+
+Order A106  customer=finn  region=JP  member=silver
+  Graph Theory Primer    x  1  $41.00
+  subtotal                    $41.00
+  coupon VIP                  -$0.82
+  shipping                    $10.00
+  tax                         $5.02
+  TOTAL                       $55.20
+  points: 5
+
+Order A107  customer=gus  region=EU  member=-
+  USB Cable              x 10  $58.20
+  subtotal                    $58.20
+  coupon WELCOME              $0.00
+  shipping                    $8.00
+  tax                         $13.24
+  TOTAL                       $79.44
+  points: 7
+
+By region
+--------------------------------------------
+region   orders      goods      tax      total
+EU            2    $150.48   $34.30    $205.78
+JP            3    $148.18   $17.32    $190.50
+OTHER         1      $9.50    $0.00     $14.50
+US            2    $350.05   $24.50    $374.55
+
+By customer
+--------------------------------------------
+aiko         orders=2 total=$135.30 points=13
+ben          orders=1 total=$126.34 points=12
+chen         orders=1 total=$120.96 points=24
+dana         orders=1 total=$14.50 points=1
+eve          orders=1 total=$253.59 points=25
+finn         orders=1 total=$55.20 points=5
+gus          orders=1 total=$79.44 points=7
+top customer: eve ($253.59)
+
+Errors (10)
+--------------------------------------------
+  - line 13: unknown sku XX-999
+  - line 14: qty must be positive
+  - line 15: bad region MARS
+  - line 16: bad member level platinum
+  - line 17: missing customer
+  - line 18: order A100 has two customers
+  - line 19: qty is not a number
+  - line 20: qty too large
+  - order A106: VIP coupon needs gold member
+  - order A107: unknown coupon WELCOME
+--------------------------------------------
+lines read: 19, bad lines: 8, orders: 8
+grand total: $785.33

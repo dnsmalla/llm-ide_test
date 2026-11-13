@@ -1,0 +1,29 @@
+order_id,customer,region,member,coupon,sku,qty
+# a normal mixed order, JP
+A100,aiko,JP,,,BK-001,1
+A100,aiko,JP,,,TY-002,2
+# book discount (3+ books), silver member, SAVE10
+A101,ben,EU,silver,SAVE10,BK-002,3
+A101,ben,EU,silver,,EL-001,2
+# toy discount (5+), gold member, VIP coupon, free shipping over 100
+A102,chen,US,gold,VIP,TY-001,5
+A102,chen,US,gold,,EL-002,1
+# FLAT5 under 50: no discount
+A103,dana,OTHER,,FLAT5,TY-002,1
+# FLAT5 over 50
+A104,aiko,JP,,FLAT5,EL-003,2
+# heavy order: shipping 20
+A105,eve,US,,,TY-003,3
+# VIP without gold: error, no discount
+A106,finn,JP,silver,VIP,BK-003,1
+# electronics 10+, unknown coupon
+A107,gus,EU,,WELCOME,EL-001,10
+# bad lines
+A108,hana,JP,,,XX-999,1
+A109,ivan,JP,,,BK-001,-2
+A110,jo,MARS,,,BK-001,1
+A111,kim,JP,platinum,,BK-001,1
+A112,,JP,,,BK-001,1
+A100,zed,JP,,,BK-001,1
+A113,lee,US,,,BK-001,abc
+A114,max,US,,,EL-001,500

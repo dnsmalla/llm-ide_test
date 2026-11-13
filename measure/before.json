@@ -1,0 +1,30 @@
+{
+  "files": 3,
+  "lines": 452,
+  "largest_file_lines": 403,
+  "files_over_300_lines": 1,
+  "functions": 21,
+  "longest_function": "shop.process_everything (109 lines)",
+  "functions_over_40_lines": 1,
+  "duplicate_4_line_blocks": 12,
+  "global_statements": 2,
+  "import_cycles": [
+    [
+      "shop",
+      "utils"
+    ]
+  ],
+  "unused_modules": [
+    "legacy"
+  ],
+  "per_file_lines": {
+    "legacy.py": 22,
+    "shop.py": 403,
+    "utils.py": 27
+  },
+  "test_files": 1,
+  "test_functions": 2,
+  "tests_green": true,
+  "pytest": "2 passed in 0.01s",
+  "behaviour_unchanged": true
+}
