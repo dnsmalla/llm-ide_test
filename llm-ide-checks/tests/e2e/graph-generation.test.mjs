@@ -2,7 +2,6 @@
 // The output is checked against what the fixture actually contains, then fed
 // through the core's own node/edge normaliser (the consumer's contract).
 //
-// Known gaps are `todo` tests, so they are reported without failing the run.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -109,17 +108,16 @@ test('the core normaliser keeps every generated node and edge', () => {
   }
 });
 
-// Known gaps. These describe what a correct graph should do; they are todo until fixed.
-test('an import links the importing file to the file that defines the module', { todo: 'graph-kit links imports to module:pkg.b, not to file:pkg/b.py' }, () => {
+// Fixed in graph-kit: Python imports resolve to scanned files, and calls inside a def become calls edges.
+test('an import links the importing file to the file that defines the module', () => {
   assert.ok(hasEdge(first.graph, 'file:pkg/a.py', 'file:pkg/b.py', 'imports'));
 });
 
-test('a call inside a function links the caller to the callee', { todo: 'graph-kit extracts no call edges (run -> helper)' }, () => {
+test('a call inside a function links the caller to the callee', () => {
   assert.ok(hasEdge(first.graph, 'symbol:pkg/a.py#run', 'symbol:pkg/b.py#helper', 'calls'));
 });
 
-const hasTreeSitter = spawnSync('python3', ['-c', 'import tree_sitter'], { encoding: 'utf8' }).status === 0;
-test('TypeScript files produce symbols', { skip: hasTreeSitter ? false : 'needs tree-sitter on the system python3' }, () => {
+test('TypeScript files produce symbols (scanned by the TypeScript compiler, no tree-sitter needed)', () => {
   const tsRoot = path.join(root, 'ts');
   writeProject(tsRoot, { 'src/x.ts': 'export function hello(): string { return "hi"; }\n' });
   const { graph } = runGraphKit(tsRoot);
